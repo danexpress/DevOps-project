@@ -12,9 +12,11 @@ terraform {
 
 provider "aws" {
   region = var.region
+
 }
-resource "aws_instance" "servernode" {
-  ami                    = "ami-052efd3df9dad4825"
+
+resource "aws_instance" "server" {
+  ami                    = "ami-06ca3ca175f37dd66"
   instance_type          = "t2.micro"
   key_name               = aws_key_pair.deployer.key_name
   vpc_security_group_ids = [aws_security_group.maingroup.id]
@@ -30,10 +32,12 @@ resource "aws_instance" "servernode" {
     "name" = "DeployVM"
   }
 }
+
 resource "aws_iam_instance_profile" "ec2-profile" {
   name = "ec2-profile"
-  role = "ECR-LOGIN-AUTO"
+  role = "EC2-ECR-AUTH"
 }
+
 resource "aws_security_group" "maingroup" {
   egress = [
     {
@@ -50,7 +54,7 @@ resource "aws_security_group" "maingroup" {
   ]
   ingress = [
     {
-      cidr_blocks      = ["0.0.0.0/0", ]
+      cidr_blocks      = ["0.0.0.0/0"]
       description      = ""
       from_port        = 22
       ipv6_cidr_blocks = []
@@ -61,9 +65,9 @@ resource "aws_security_group" "maingroup" {
       to_port          = 22
     },
     {
-      cidr_blocks      = ["0.0.0.0/0", ]
+      cidr_blocks      = ["0.0.0.0/0"]
       description      = ""
-      from_port        = 80
+      from_port        = 22
       ipv6_cidr_blocks = []
       prefix_list_ids  = []
       protocol         = "tcp"
@@ -72,16 +76,15 @@ resource "aws_security_group" "maingroup" {
       to_port          = 80
     }
   ]
-
-
 }
 
 resource "aws_key_pair" "deployer" {
   key_name   = var.key_name
   public_key = var.public_key
+
 }
 
 output "instance_public_ip" {
-  value     = aws_instance.servernode.public_ip
+  value     = aws_instance.server.public_ip
   sensitive = true
 }
